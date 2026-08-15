@@ -57,7 +57,7 @@ Copy the `database_id` it prints into `wrangler.toml`.
 npx wrangler secret put HOUSEHOLD_PIN         # the PIN you and your wife will type
 npx wrangler secret put GEMINI_API_KEY        # free tier, from aistudio.google.com/apikey
 ```
-This repo ships with a placeholder PIN (`000000`) wired into `.dev.vars.example` for local dev only — set the real one with the command above before you actually use this day to day.
+This repo ships with a placeholder PIN wired into `.dev.vars.example` for local dev only — set the real one with the command above before you actually use this day to day.
 
 **3. Apply the schema:**
 ```bash
