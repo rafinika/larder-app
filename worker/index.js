@@ -176,7 +176,7 @@ async function handleLlm(request, env) {
   const start = clean.indexOf("{");
   const end = clean.lastIndexOf("}");
   if (start === -1 || end === -1) {
-    return json({ error: "No JSON object found in the model's response.", detail: clean.slice(0, 300) }, 502);
+    return json({ error: "No JSON object found in the model's response.", detail: JSON.stringify(data).slice(0, 800) }, 502);
   }
 
   try {
