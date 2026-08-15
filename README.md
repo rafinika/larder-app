@@ -7,6 +7,10 @@ Design docs (read these before changing direction, not after):
 - `ARCHITECTURE.md` — why Cloudflare Workers + D1, the PIN/session design, sync
 - `GAMIFICATION.md` — coins, the fish catalog, coral growth, ocean-floor dirtiness
 
+## Want to try it?
+
+This is source code, not a public demo — the deployed instance is gated behind a household PIN (see `ARCHITECTURE.md` §7) and isn't meant for strangers to poke at. If you'd like to try it out, [open an issue](../../issues) or reach out to the repo owner ([@rafinika](https://github.com/rafinika)) and ask for a PIN — or just spin up your own copy for free, following "First-time setup" below.
+
 ## Screenshots
 
 | Week plan | Fridge | Shopping list |
