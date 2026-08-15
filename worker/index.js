@@ -135,7 +135,7 @@ async function handlePutState(request, env) {
 // extracts the {...} JSON object, parses it. Swapped from Anthropic to avoid
 // paid API usage — same prompt/response contract for the frontend either way.
 
-const GEMINI_MODEL = "gemini-2.5-flash";
+const GEMINI_MODEL = "gemini-2.0-flash";
 
 async function handleLlm(request, env) {
   const body = await safeJson(request);
