@@ -7,6 +7,18 @@ Design docs (read these before changing direction, not after):
 - `ARCHITECTURE.md` — why Cloudflare Workers + D1, the PIN/session design, sync
 - `GAMIFICATION.md` — coins, the fish catalog, coral growth, ocean-floor dirtiness
 
+## Screenshots
+
+| Week plan | Fridge | Shopping list |
+|---|---|---|
+| ![Week view — a day-by-day meal plan generated from what's expiring in the fridge](docs/screenshots/week.png) | ![Fridge view — inventory tracked as plenty/low/out with days-left countdowns](docs/screenshots/fridge.png) | ![Shopping list grouped by grocery category, filled from the week's plan](docs/screenshots/list.png) |
+
+| Ocean floor tank | Progress |
+|---|---|
+| ![Ocean floor tank — fish bought with coins earned from cooking](docs/screenshots/tank.png) | ![Progress view — meals cooked this week, plant/protein variety, and badges](docs/screenshots/progress.png) |
+
+Cooking a planned meal earns coins; coins buy fish for the tank. The **Week** view plans meals around what's about to expire, **Fridge** tracks inventory, **List** is the shopping list, **Tank** is the coin-economy reward screen, and **Progress** tracks cooking streaks and nutritional variety for the week.
+
 ## What's actually running
 
 One Cloudflare Worker (`worker/index.js`) serves both the built React app (static assets) and a small JSON API, backed by one D1 (SQLite) database holding a single state blob plus a session table. There's no separate backend host, no Node server to keep alive — `wrangler deploy` ships the whole thing.
