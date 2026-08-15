@@ -9,7 +9,7 @@ Decision, in one line: **Cloudflare Workers + D1, single-blob state with a versi
 ## 1. Why this stack
 
 - You already have the Cloudflare Developer Platform connector active in this session, so provisioning (D1 database, Worker, KV if needed) can happen directly instead of you setting up a new account elsewhere.
-- Free tier comfortably covers two people checking a shopping list: Workers 100k requests/day, D1 5GB storage + 5M row reads/day, static asset hosting unmetered. Realistic cost: **$0/month infra**, plus a few cents a month in Anthropic API usage for the meal-plan generation calls.
+- Free tier comfortably covers two people checking a shopping list: Workers 100k requests/day, D1 5GB storage + 5M row reads/day, static asset hosting unmetered. Realistic cost: **$0/month infra**, and Gemini's free tier covers the meal-plan generation calls too.
 - No servers to patch, no cron to keep alive, no separate auth provider to configure — matches "personal use, low maintenance."
 
 Two things ruled out and why:
@@ -39,7 +39,7 @@ Two things ruled out and why:
                                                        └────────────────────────────┘
                                                                    │
                                                        ┌───────────▼───────────────┐
-                                                       │  Anthropic API (server-    │
+                                                       │  Gemini API (server-       │
                                                        │  side call, API key held   │
                                                        │  as a Worker secret)       │
                                                        └────────────────────────────┘
@@ -68,7 +68,7 @@ Small and deliberately blob-shaped for v1:
 | `/api/login` | POST | none (this *is* the login) | Body: `{ pin }`. Correct PIN → creates a row in `auth_sessions`, returns `{ token }`. Wrong PIN → `401`, with a short delay (see §7) |
 | `/api/state` | GET | Bearer token | Returns `{ state, version, updatedAt }` — the whole app state |
 | `/api/state` | PUT | Bearer token | Body: `{ state, expectedVersion }`. Writes if `expectedVersion` matches what's stored; otherwise `409` with the current state so the client can re-merge |
-| `/api/llm` | POST | Bearer token | Body: `{ prompt, maxTokens }`. Calls Anthropic server-side, parses the JSON out of the response, returns it. |
+| `/api/llm` | POST | Bearer token | Body: `{ prompt, maxTokens }`. Calls Gemini server-side, parses the JSON out of the response, returns it. |
 
 Every endpoint except `/api/login` requires an `Authorization: Bearer <token>` header. The Worker checks the token against `auth_sessions` on each request; missing or unknown token → `401`, which the client treats as "show the PIN pad again."
 
@@ -157,12 +157,12 @@ directory = "./dist"
 Steps:
 1. `wrangler d1 create larder-db` → paste the returned id above
 2. `wrangler d1 execute larder-db --file=./schema.sql` (the `CREATE TABLE`s from §5 — `app_state` and `auth_sessions` — plus one `INSERT` seeding the empty state)
-3. `wrangler secret put ANTHROPIC_API_KEY`
+3. `wrangler secret put GEMINI_API_KEY`
 4. `wrangler secret put HOUSEHOLD_PIN` — pick the PIN now, this is the only place it's ever typed as plaintext
 5. `vite build` then `wrangler deploy`
 6. Open the resulting `*.workers.dev` URL on both phones, enter the PIN once each, "Add to Home Screen"
 
-Local dev: `wrangler dev` runs the Worker + a local D1 (SQLite file on disk) together; `.dev.vars` holds a dev Anthropic key so you're not burning the prod secret while iterating.
+Local dev: `wrangler dev` runs the Worker + a local D1 (SQLite file on disk) together; `.dev.vars` holds a dev Gemini key so you're not burning the prod secret while iterating.
 
 ---
 
@@ -183,7 +183,7 @@ This keeps the migration to "swap the storage and LLM calls for API calls," not 
 | Item | Cost |
 |---|---|
 | Cloudflare Workers, D1, static assets | $0/month (free tier, nowhere near the limits for 2 users) |
-| Anthropic API (weekly plan + occasional add-meal) | Low — a handful of calls a week at a few cents each; realistically under $1/month |
+| Gemini API (weekly plan + occasional add-meal) | $0/month — well within the free tier for this usage pattern |
 | Domain (optional, if you don't want `*.workers.dev`) | ~$10/year if you want one |
 
 ---

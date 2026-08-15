@@ -39,7 +39,7 @@ Copy the `database_id` it prints into `wrangler.toml`.
 **2. Set the two secrets** (never go in a file — these are set directly on Cloudflare):
 ```bash
 npx wrangler secret put HOUSEHOLD_PIN         # the PIN you and your wife will type
-npx wrangler secret put ANTHROPIC_API_KEY     # from console.anthropic.com
+npx wrangler secret put GEMINI_API_KEY        # free tier, from aistudio.google.com/apikey
 ```
 This repo ships with a placeholder PIN (`000000`) wired into `.dev.vars.example` for local dev only — set the real one with the command above before you actually use this day to day.
 
@@ -92,5 +92,5 @@ If you use the GitHub CLI (`gh`) or GitHub Desktop instead, either works fine �
 ## Notes
 
 - No auth beyond the household PIN — see `ARCHITECTURE.md` §7 for the tradeoffs and what "remembered device" means.
-- The LLM calls (`/api/llm`) use `claude-sonnet-4-6` — same model the original artifact used.
+- The LLM calls (`/api/llm`) use Google's `gemini-2.5-flash` (free tier) — swapped from the original Anthropic Claude call to avoid paid API usage.
 - `PROJECT.md` §6 lists what's deliberately not built yet (multi-device sync was the big one — now done — lunch/breakfast rows, editable shelf-life defaults, etc. are still open).

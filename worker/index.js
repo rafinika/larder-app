@@ -131,9 +131,11 @@ async function handlePutState(request, env) {
 }
 
 /* ---------- LLM proxy ---------- */
-// Mirrors what askClaude() used to do client-side (see Larder.jsx history):
-// call Anthropic, pull out the text blocks, strip ```json fences, extract the
-// {...} JSON object, parse it. Only difference is the API key now lives here.
+// Calls Google Gemini (free tier), pulls out the text, strips ```json fences,
+// extracts the {...} JSON object, parses it. Swapped from Anthropic to avoid
+// paid API usage — same prompt/response contract for the frontend either way.
+
+const GEMINI_MODEL = "gemini-2.5-flash";
 
 async function handleLlm(request, env) {
   const body = await safeJson(request);
@@ -141,31 +143,35 @@ async function handleLlm(request, env) {
   const maxTokens = (body && body.maxTokens) || 1024;
   if (!prompt) return json({ error: "prompt required" }, 400);
 
-  const res = await fetch("https://api.anthropic.com/v1/messages", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "x-api-key": env.ANTHROPIC_API_KEY,
-      "anthropic-version": "2023-06-01",
-    },
-    body: JSON.stringify({
-      model: "claude-sonnet-4-6",
-      max_tokens: maxTokens,
-      messages: [{ role: "user", content: prompt }],
-    }),
-  });
+  const res = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-goog-api-key": env.GEMINI_API_KEY,
+      },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: prompt }] }],
+        generationConfig: { maxOutputTokens: maxTokens },
+      }),
+    }
+  );
 
   if (!res.ok) {
     const errBody = await res.text().catch(() => "");
-    return json({ error: `Anthropic API ${res.status}`, detail: errBody.slice(0, 300) }, 502);
+    return json({ error: `Gemini API ${res.status}`, detail: errBody.slice(0, 300) }, 502);
   }
 
   const data = await res.json();
-  if (data.stop_reason === "max_tokens") {
+  const candidate = (data.candidates || [])[0];
+  if (candidate && candidate.finishReason === "MAX_TOKENS") {
     return json({ error: "Response was cut off (hit max_tokens) before the JSON closed." }, 502);
   }
 
-  const text = (data.content || []).filter(b => b.type === "text").map(b => b.text).join("\n");
+  const text = ((candidate && candidate.content && candidate.content.parts) || [])
+    .map(p => p.text || "")
+    .join("\n");
   const clean = text.replace(/```json/g, "").replace(/```/g, "").trim();
   const start = clean.indexOf("{");
   const end = clean.lastIndexOf("}");

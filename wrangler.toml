@@ -16,4 +16,4 @@ database_id = "3fcb7d84-d207-4f84-b38a-79785ebf2926"
 
 # Secrets (never go in this file — set them with wrangler):
 #   wrangler secret put HOUSEHOLD_PIN
-#   wrangler secret put ANTHROPIC_API_KEY
+#   wrangler secret put GEMINI_API_KEY
