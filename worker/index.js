@@ -153,7 +153,7 @@ async function handleLlm(request, env) {
     body: JSON.stringify({
       model: GEMINI_MODEL,
       input: prompt,
-      generation_config: { max_output_tokens: maxTokens },
+      generation_config: { max_output_tokens: maxTokens, thinking_level: "low" },
     }),
   });
 
