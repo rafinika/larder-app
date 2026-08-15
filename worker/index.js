@@ -131,11 +131,12 @@ async function handlePutState(request, env) {
 }
 
 /* ---------- LLM proxy ---------- */
-// Calls Google Gemini (free tier), pulls out the text, strips ```json fences,
-// extracts the {...} JSON object, parses it. Swapped from Anthropic to avoid
-// paid API usage — same prompt/response contract for the frontend either way.
+// Calls Google Gemini's Interactions API (free tier), pulls out output_text,
+// strips ```json fences, extracts the {...} JSON object, parses it. Swapped
+// from Anthropic to avoid paid API usage — same prompt/response contract for
+// the frontend either way.
 
-const GEMINI_MODEL = "gemini-flash-latest";
+const GEMINI_MODEL = "gemini-3.6-flash";
 
 async function handleLlm(request, env) {
   const body = await safeJson(request);
@@ -143,20 +144,18 @@ async function handleLlm(request, env) {
   const maxTokens = (body && body.maxTokens) || 1024;
   if (!prompt) return json({ error: "prompt required" }, 400);
 
-  const res = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`,
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-goog-api-key": env.GEMINI_API_KEY,
-      },
-      body: JSON.stringify({
-        contents: [{ parts: [{ text: prompt }] }],
-        generationConfig: { maxOutputTokens: maxTokens },
-      }),
-    }
-  );
+  const res = await fetch("https://generativelanguage.googleapis.com/v1beta/interactions", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "x-goog-api-key": env.GEMINI_API_KEY,
+    },
+    body: JSON.stringify({
+      model: GEMINI_MODEL,
+      input: prompt,
+      generation_config: { max_output_tokens: maxTokens },
+    }),
+  });
 
   if (!res.ok) {
     const errBody = await res.text().catch(() => "");
@@ -164,14 +163,14 @@ async function handleLlm(request, env) {
   }
 
   const data = await res.json();
-  const candidate = (data.candidates || [])[0];
-  if (candidate && candidate.finishReason === "MAX_TOKENS") {
-    return json({ error: "Response was cut off (hit max_tokens) before the JSON closed." }, 502);
+  if (data.status === "incomplete" || data.status === "budget_exceeded") {
+    return json({ error: "Response was cut off (hit max_output_tokens) before the JSON closed." }, 502);
+  }
+  if (data.status && data.status !== "completed") {
+    return json({ error: `Gemini interaction did not complete (status: ${data.status})` }, 502);
   }
 
-  const text = ((candidate && candidate.content && candidate.content.parts) || [])
-    .map(p => p.text || "")
-    .join("\n");
+  const text = data.output_text || "";
   const clean = text.replace(/```json/g, "").replace(/```/g, "").trim();
   const start = clean.indexOf("{");
   const end = clean.lastIndexOf("}");

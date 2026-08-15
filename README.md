@@ -92,5 +92,5 @@ If you use the GitHub CLI (`gh`) or GitHub Desktop instead, either works fine �
 ## Notes
 
 - No auth beyond the household PIN — see `ARCHITECTURE.md` §7 for the tradeoffs and what "remembered device" means.
-- The LLM calls (`/api/llm`) use Google's `gemini-flash-latest` (free tier; the alias tracks whatever the current flash model is, so it doesn't need updating every time Google ships a new version) — swapped from the original Anthropic Claude call to avoid paid API usage.
+- The LLM calls (`/api/llm`) use Google's Interactions API (`POST /v1beta/interactions`) with the `gemini-3.6-flash` model (free tier) — swapped from the original Anthropic Claude call to avoid paid API usage.
 - `PROJECT.md` §6 lists what's deliberately not built yet (multi-device sync was the big one — now done — lunch/breakfast rows, editable shelf-life defaults, etc. are still open).
