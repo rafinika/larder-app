@@ -229,8 +229,6 @@ function LarderApp() {
           <h1>Larder</h1>
         </div>
         <div className="score">
-          <span className="pts">{state.game.points}</span>
-          <span className="ptslabel">pts</span>
           <span className="coinschip"><CoinIcon size={15} />{state.game.coins}</span>
         </div>
       </header>
@@ -1001,8 +999,6 @@ function Styles() {
 .brand .mark{background:rgba(255,255,255,.16)}
 .top h1{font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:21px;margin:0;letter-spacing:-.02em}
 .score{display:flex;align-items:baseline;gap:4px}
-.pts{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:19px;color:var(--lime)}
-.ptslabel{font-size:11px;opacity:.65;text-transform:uppercase;letter-spacing:.09em}
 
 .body{flex:1;padding:16px 14px 96px;max-width:640px;width:100%;margin:0 auto}
 .view{display:flex;flex-direction:column;gap:16px}
