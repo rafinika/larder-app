@@ -1,0 +1,5 @@
+# Copy this file to `.dev.vars` (gitignored) for local `wrangler dev`.
+# In production these are set with `wrangler secret put <NAME>`, never committed.
+
+HOUSEHOLD_PIN=000000
+ANTHROPIC_API_KEY=sk-ant-your-key-here

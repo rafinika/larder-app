@@ -1,0 +1,19 @@
+name = "larder"
+main = "worker/index.js"
+compatibility_date = "2026-08-01"
+
+# Serves the Vite build output. The worker's fetch handler checks the request
+# path first: anything under /api/* is handled in worker/index.js, everything
+# else falls through to these static assets.
+[assets]
+directory = "./dist"
+binding = "ASSETS"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "larder-db"
+database_id = "REPLACE_WITH_YOUR_D1_DATABASE_ID"          # from: wrangler d1 create larder-db
+
+# Secrets (never go in this file — set them with wrangler):
+#   wrangler secret put HOUSEHOLD_PIN
+#   wrangler secret put ANTHROPIC_API_KEY
