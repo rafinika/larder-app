@@ -141,7 +141,12 @@ const GEMINI_MODEL = "gemini-3.6-flash";
 async function handleLlm(request, env) {
   const body = await safeJson(request);
   const prompt = body && body.prompt;
-  const maxTokens = (body && body.maxTokens) || 1024;
+  const requestedMaxTokens = (body && body.maxTokens) || 1024;
+  // Thinking tokens are billed out of the same max_output_tokens budget, and
+  // this model spends a lot on thinking even at thinking_level "low" — pad
+  // the budget well past what the caller asked for so the actual answer
+  // doesn't get starved.
+  const maxTokens = Math.max(requestedMaxTokens + 3000, 4000);
   if (!prompt) return json({ error: "prompt required" }, 400);
 
   const res = await fetch("https://generativelanguage.googleapis.com/v1beta/interactions", {
@@ -171,12 +176,20 @@ async function handleLlm(request, env) {
     return json({ error: `Gemini interaction did not complete (status: ${data.status})` }, 502);
   }
 
-  const text = data.output_text || "";
+  // output_text is sometimes empty even on a "completed" status; fall back to
+  // pulling text blocks straight out of the steps array.
+  const stepText = (data.steps || [])
+    .flatMap(s => s.content || [])
+    .filter(c => c.type === "text")
+    .map(c => c.text || "")
+    .join("\n");
+  const text = data.output_text || stepText || "";
   const clean = text.replace(/```json/g, "").replace(/```/g, "").trim();
   const start = clean.indexOf("{");
   const end = clean.lastIndexOf("}");
   if (start === -1 || end === -1) {
-    return json({ error: "No JSON object found in the model's response.", detail: JSON.stringify(data).slice(0, 800) }, 502);
+    const debugData = JSON.stringify(data, (k, v) => (k === "signature" ? undefined : v));
+    return json({ error: "No JSON object found in the model's response.", detail: debugData.slice(0, 1500) }, 502);
   }
 
   try {
