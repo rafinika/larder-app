@@ -12,7 +12,7 @@ binding = "ASSETS"
 [[d1_databases]]
 binding = "DB"
 database_name = "larder-db"
-database_id = "REPLACE_WITH_YOUR_D1_DATABASE_ID"          # from: wrangler d1 create larder-db
+database_id = "3fcb7d84-d207-4f84-b38a-79785ebf2926"
 
 # Secrets (never go in this file — set them with wrangler):
 #   wrangler secret put HOUSEHOLD_PIN
