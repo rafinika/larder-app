@@ -154,6 +154,7 @@ async function handleLlm(request, env) {
       model: GEMINI_MODEL,
       input: prompt,
       generation_config: { max_output_tokens: maxTokens, thinking_level: "low" },
+      response_format: { type: "text", mime_type: "application/json" },
     }),
   });
 
@@ -175,7 +176,7 @@ async function handleLlm(request, env) {
   const start = clean.indexOf("{");
   const end = clean.lastIndexOf("}");
   if (start === -1 || end === -1) {
-    return json({ error: "No JSON object found in the model's response." }, 502);
+    return json({ error: "No JSON object found in the model's response.", detail: clean.slice(0, 300) }, 502);
   }
 
   try {
